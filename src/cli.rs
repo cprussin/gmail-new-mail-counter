@@ -2,8 +2,9 @@ use {
     crate::{GmailClient, GmailClientConfig},
     anyhow::Context,
     clap::Parser,
+    handlebars::Handlebars,
+    serde_json::json,
     std::io::ErrorKind,
-    strfmt::strfmt,
 };
 
 #[derive(Debug, Parser)]
@@ -80,7 +81,8 @@ pub async fn cli() -> anyhow::Result<()> {
     match format {
         Some(format) => println!(
             "{}",
-            strfmt!(&format, total => total, unread => unread)
+            Handlebars::new()
+                .render_template(&format, &json!({"total": total, "unread": unread}))
                 .context("Failed to format output")?
         ),
         None => println!("total: {total}, unread: {unread}"),

@@ -9,13 +9,14 @@ use {
         },
         Gmail,
     },
+    handlebars::Handlebars,
+    serde_json::json,
     std::{
         future::Future,
         io, mem,
         path::{Path, PathBuf},
         pin::Pin,
     },
-    strfmt::strfmt,
     xdg::{BaseDirectories, BaseDirectoriesError},
 };
 
@@ -158,7 +159,9 @@ async fn present_user_url<'a>(
     } else {
         println!(
             "{}",
-            strfmt!(format, url => String::from(url)).map_err(|_| "Failed to format output")?
+            Handlebars::new()
+                .render_template(format, &json!({ "url": String::from(url) }))
+                .map_err(|_| "Failed to format output")?
         );
         Ok(String::new())
     }

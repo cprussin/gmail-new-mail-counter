@@ -9,8 +9,8 @@ The intended use for this is to drive an indicator on something like
 
 ## Obtaining
 
-If you use nix, you can use the [included flake](./flake.nix) with `nix run .`
-or `nix build .`.
+If you use nix, you can use the [included flake](./flake.nix), e.g. `nix run
+github:cprussin/gmail-new-mail-counter`.
 
 If you don't use nix, you can build with
 [cargo](https://doc.rust-lang.org/cargo/).  Just obtain Cargo however makes the
