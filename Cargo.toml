@@ -1,0 +1,19 @@
+[package]
+name = "gmail_new_mail_counter"
+version = "0.1.0"
+edition = "2021"
+description = "A simple program that pings gmail and lists new mail counts."
+license = "MIT"
+
+[dependencies]
+anyhow = "1.0.86"
+clap = { version = "4.5.8", features = ["derive", "env"] }
+dotenvy = "0.15.7"
+google-gmail1 = "5.0.5"
+strfmt = "0.2.4"
+thiserror = "1.0.61"
+tokio = { version = "1.38.0", features = ["full"] }
+xdg = "2.5.2"
+
+[patch.crates-io]
+yup-oauth2 = { version = "9", git = "https://github.com/cprussin/yup-oauth2", branch = "enable-setting-login-hint" }
