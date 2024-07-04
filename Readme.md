@@ -52,3 +52,34 @@ Note you can mix & match CLI arguments and env variables if you need.
 There are some additional arguments that are useful, including `--format` and
 `--auth-format` to format the output messages, and `--label` to select which
 label to count mail for.  See the `--help` for details.
+
+## Example Waybar config
+
+Add a custom module to your waybar config:
+
+```
+  "custom/email-counter": {
+    "exec": "/path/to/get-email.sh",
+    "on-click": "/path/to/browser https://mail.google.com",
+    "restart-interval": 20,
+    "return-type": "json"
+  },
+```
+
+Place the following into `get-email.sh`:
+
+```shell
+#!/bin/sh
+set -a
+. /path/to/env/file/with/secrets
+set +a
+gmail_new_mail_counter \
+  --format '{{#if (gt total 0)}}{"text":"✉ {{ unread }} / {{ total }}"{{#if (gt unread 0) }},"class":"unread"{{/if}}}{{/if}}' \
+  --auth-format '{"text":"✉ "}' \
+  <your email address>@gmail.com
+```
+
+Place the `CLIENT_SECRET`, `CLIENT_ID`, and `PROJECT_ID` env variables with the
+values from your OAuth app credentials in `/path/to/env/file/with/secrets`, and
+then run `gmail_new_mail_counter --auth <your email address>@gmail.com` to
+initialize credentials.
