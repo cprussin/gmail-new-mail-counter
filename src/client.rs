@@ -32,6 +32,7 @@ pub struct GmailClient {
 
 pub struct GmailClientConfig {
     pub account: String,
+    pub auth_enabled: bool,
     pub auth_format: Option<String>,
     pub client_id: String,
     pub client_secret: String,
@@ -95,16 +96,16 @@ fn build_client() -> Result<Client<HttpsConnector<HttpConnector>, Body>, CreateG
 async fn build_auth(
     config: &mut GmailClientConfig,
 ) -> Result<Authenticator<HttpsConnector<HttpConnector>>, CreateGmailClientError> {
-    let mut builder = InstalledFlowAuthenticator::builder(
+    let builder = InstalledFlowAuthenticator::builder(
         build_secret(config),
         InstalledFlowReturnMethod::HTTPRedirect,
     )
     .persist_tokens_to_disk(get_token_file(config)?)
-    .login_hint(mem::take(&mut config.account));
-
-    if let Some(auth_format) = mem::take(&mut config.auth_format) {
-        builder = builder.flow_delegate(Box::new(FlowDelegate(auth_format)));
-    }
+    .login_hint(mem::take(&mut config.account))
+    .flow_delegate(Box::new(FlowDelegate(
+        config.auth_enabled,
+        mem::take(&mut config.auth_format),
+    )));
 
     builder
         .build()
@@ -137,7 +138,7 @@ fn get_token_file(config: &mut GmailClientConfig) -> Result<PathBuf, CreateGmail
     }
 }
 
-struct FlowDelegate(String);
+struct FlowDelegate(bool, Option<String>);
 
 impl InstalledFlowDelegate for FlowDelegate {
     fn present_user_url<'a>(
@@ -145,25 +146,37 @@ impl InstalledFlowDelegate for FlowDelegate {
         url: &'a str,
         need_code: bool,
     ) -> Pin<Box<dyn Future<Output = Result<String, String>> + Send + 'a>> {
-        Box::pin(present_user_url(&self.0, url, need_code))
+        Box::pin(present_user_url(self.0, &self.1, url, need_code))
     }
 }
 
 async fn present_user_url<'a>(
-    format: &'a str,
+    auth_enabled: bool,
+    format: &Option<String>,
     url: &'a str,
     need_code: bool,
 ) -> Result<String, String> {
     if need_code {
         Err("A code was required but we don't handle codes here!".into())
-    } else {
-        println!(
-            "{}",
-            Handlebars::new()
-                .render_template(format, &json!({ "url": String::from(url) }))
-                .map_err(|_| "Failed to format output")?
-        );
+    } else if auth_enabled {
+        if let Some(format) = format {
+            println!(
+                "{}",
+                Handlebars::new()
+                    .render_template(format, &json!({ "url": String::from(url) }))
+                    .map_err(|_| "Failed to format output")?
+            );
+        } else {
+            println!("Please go to the following URL to authenticate: {url}");
+        }
         Ok(String::new())
+    } else {
+        if let Some(format) = format {
+            println!("{format}");
+        } else {
+            println!("No cached credentials and auth flow isn't enabled, please re-run with `--auth` to obtain credentials");
+        }
+        std::process::exit(1);
     }
 }
 

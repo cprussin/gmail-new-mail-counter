@@ -14,6 +14,12 @@ pub struct Cli {
     #[arg(env = "ACCOUNT")]
     account: String,
 
+    /// Enable this flag to turn on the auth flow.  If this flag isn't enabled
+    /// and there are no cached credentials, then we will print the message in
+    /// `auth_format` or a default message and then exit immediately.
+    #[arg(short, long, env = "FORMAT")]
+    auth: bool,
+
     /// The format string to use to display the results.  Use the `{total}`
     /// placeholder for the number of total messages, and use the `{unread}`
     /// placeholder for the number of unread messages.
@@ -23,7 +29,7 @@ pub struct Cli {
     /// The format string to use to display auth prompt.  Use the `{url}`
     /// placeholder for the auth URL to open in the browser to complete the auth
     /// flow.
-    #[arg(short, long, env = "FORMAT")]
+    #[arg(long, env = "FORMAT")]
     auth_format: Option<String>,
 
     /// The gmail label to subscribe to
@@ -53,6 +59,7 @@ pub async fn cli() -> anyhow::Result<()> {
     load_dotenv().context("Invalid .env file")?;
     let Cli {
         account,
+        auth,
         auth_format,
         client_id,
         client_secret,
@@ -64,6 +71,7 @@ pub async fn cli() -> anyhow::Result<()> {
 
     let client = GmailClient::create(GmailClientConfig {
         account,
+        auth_enabled: auth,
         auth_format,
         client_id,
         client_secret,
