@@ -57,11 +57,11 @@ label to count mail for.  See the `--help` for details.
 
 Add a custom module to your waybar config:
 
-```
+```json
   "custom/email-counter": {
     "exec": "/path/to/get-email.sh",
     "on-click": "/path/to/browser https://mail.google.com",
-    "restart-interval": 20,
+    "interval": 20,
     "return-type": "json"
   },
 ```

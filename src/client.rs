@@ -176,7 +176,7 @@ async fn present_user_url<'a>(
         } else {
             println!("No cached credentials and auth flow isn't enabled, please re-run with `--auth` to obtain credentials");
         }
-        std::process::exit(1);
+        std::process::exit(0);
     }
 }
 
